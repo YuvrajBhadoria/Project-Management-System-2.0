@@ -1,6 +1,6 @@
 from psycopg.rows import dict_row
 from src.data.database import pool
-from src.models.Users import Users,userResponse
+from src.models.Users import Users,UserLogin,userResponse
 from pwdlib import PasswordHash
 
 
@@ -32,24 +32,26 @@ def register(user:Users):
     if created_user is None:
         return None
     return created_user
-def login (user: Users):
+
+
+def login (user: UserLogin):
     password_hash = PasswordHash.recommended()
     
     with pool.connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT password_hasshed from users
+                        SELECT id,password_hasshed from users
                         where username = %s
                         """,
                         (user.username,)
                     )
                     row = cursor.fetchone()
                     
-                    actual_password = row[0]
+                    actual_password = row[1]
                     
                     if password_hash.verify(user.password, actual_password):
-                        return {"message": "Login Successful"}
+                        return row[0]
                     
                     return None
 

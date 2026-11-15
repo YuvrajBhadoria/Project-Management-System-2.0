@@ -21,3 +21,7 @@ class CreateUser(BaseModel):
     full_name: str
     is_active: bool
     created_at: datetime
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
