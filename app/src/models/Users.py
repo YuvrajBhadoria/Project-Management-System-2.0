@@ -13,11 +13,10 @@ class userResponse(BaseModel):
     email: EmailStr
     full_name: str
     
-class CreateUser(BaseModel):
+class UserDetail(BaseModel):
     id: UUID
     username: str
     email: EmailStr
-    password: str
     full_name: str
     is_active: bool
     created_at: datetime

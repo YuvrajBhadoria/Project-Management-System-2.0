@@ -2,7 +2,7 @@ from psycopg.rows import dict_row
 from src.data.database import pool
 from src.models.Users import Users,UserLogin,userResponse
 from pwdlib import PasswordHash
-
+from psycopg.errors import UniqueViolation
 
 def register(user:Users):
     password_hash = PasswordHash.recommended()
@@ -11,27 +11,38 @@ def register(user:Users):
     if(user.username == "" or user.password == "" ):
         return None
     
-    with pool.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    """
-                    INSERT INTO users(username,email,password_hasshed,full_name)
-                    VALUES (%s,%s,%s,%s)
-                    RETURNING username, email, full_name
-                    """,
-                    (user.username,user.email,hashed_password,user.full_name)
-                )
-                row = cursor.fetchone()
-                
-                created_user = userResponse(
-                    username=row[0],
-                    email=row[1],
-                    full_name=row[2],
-                )
-                
-    if created_user is None:
-        return None
-    return created_user
+    
+    try: 
+        with pool.connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        INSERT INTO users(username,email,password_hasshed,full_name)
+                        VALUES (%s,%s,%s,%s)
+                        RETURNING username, email, full_name
+                        """,
+                        (user.username,user.email,hashed_password,user.full_name)
+                    )
+                    row = cursor.fetchone()
+                    
+                    if row is None:
+                            return None
+                    
+                    created_user = userResponse(
+                                username=row[0],
+                                email=row[1],
+                                full_name=row[2],
+                            )
+                                    
+                    return created_user
+    except UniqueViolation as e:
+        if e.diag.constraint_name == "users_email_unique":
+            return {"error": "email"}
+
+        elif e.diag.constraint_name == "users_username_unique":
+            return {"error": "username"}
+      
+        raise
 
 
 def login (user: UserLogin):
@@ -47,6 +58,8 @@ def login (user: UserLogin):
                         (user.username,)
                     )
                     row = cursor.fetchone()
+                    if row is None:
+                        return None
                     
                     actual_password = row[1]
                     
@@ -64,3 +77,23 @@ def checkDbHealth():
             status = cur.fetchall()
 
             return status
+        
+def getUserById(user_id):
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id,username,email,full_name,is_active,created_at FROM users where id = %s",(user_id,))
+
+            row = cur.fetchone()
+            if row is None:
+                return None
+            return row
+        
+def getUserByUsername(username):
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id,username,email,full_name,is_active,created_at FROM users where username = %s",(username,))
+
+            row = cur.fetchone()
+            if row is None:
+                return None
+            return row

@@ -16,6 +16,12 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
+COOKIE_NAME = "access_token"
+COOKIE_HTTP_ONLY = True
+COOKIE_SECURE = False  # True in production with HTTPS
+COOKIE_SAMESITE = "lax"
+COOKIE_MAX_AGE = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
 def create_access_token(user_id: str):
 
     expire = datetime.now(timezone.utc) + timedelta(
