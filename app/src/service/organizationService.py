@@ -49,7 +49,7 @@ def addOrganizationMember(slug, member:OrganizationMemberCreate, current_user_id
         return {"message": "Organization Does not exists"}
 
  
-    current_member = data.getOrganizationMember(
+    current_member = getOrganizationMember(
         org["id"],
         current_user_id
     )
@@ -63,7 +63,9 @@ def addOrganizationMember(slug, member:OrganizationMemberCreate, current_user_id
     if user is None:
         return None
 
-   
+    if current_member["role"] == "admin" and member.role == "owner":
+        return {"message": "You dont have permission to make another Owner"}
+        
     return data.addOrganizationMember(
         org["id"],
         user[0],
@@ -72,7 +74,7 @@ def addOrganizationMember(slug, member:OrganizationMemberCreate, current_user_id
     
 def getOrganizationMembers(org_id,current_user_id):
     
-    current_member = data.getOrganizationMember(
+    current_member = getOrganizationMember(
             org_id,
             current_user_id
         )
@@ -81,3 +83,6 @@ def getOrganizationMembers(org_id,current_user_id):
             return {"message": "You dont have permission to view all the members"}
         
     return data.getOrganizationMembers(org_id)
+
+def getOrganizationMember(org_id, user_id):
+    return data.getOrganizationMember(org_id,user_id)
