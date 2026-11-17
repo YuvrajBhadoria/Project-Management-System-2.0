@@ -17,5 +17,5 @@ class CreateOrganization(BaseModel):
 
 class OrganizationMemberCreate(BaseModel):
     username: str
-    role: Literal["admin", "member", "owner"] = "member"
+    role: Literal["admin", "member"] = "member"
     

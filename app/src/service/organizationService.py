@@ -5,20 +5,7 @@ from src.service import userService
 from slugify import slugify
 
 def createOrganization(org: Organization,user_ID):
-    result = data.createOrganization(org,user_ID)
-    
-    if result is not None:
-        
-        slug = slugify(org.name)
-        user:UserDetail = data.getUserById(user_ID)
-        
-        member = OrganizationMemberCreate(
-            username = user[1],
-            role = "owner"
-        )
-        
-        addOrganizationOwner(slug,member)
-    return result
+    return data.createOrganization(org,user_ID)
     
 def getUserOrganization(user_ID):
     return data.getUserOrganization(user_ID)
@@ -29,17 +16,6 @@ def getOrganization(slug):
 def updateOrganization(slug:str ,update_data: str):
     return data.updateOrganization(slug,update_data)
 
-def addOrganizationOwner(slug, member:OrganizationMemberCreate):
-    
-    user = userService.getUserByUsername(member.username)
-    org = getOrganization(slug)
-
-       
-    return data.addOrganizationMember(
-            org["id"],
-            user[0],
-            member.role
-        )
 
 def addOrganizationMember(slug, member:OrganizationMemberCreate, current_user_id):
     

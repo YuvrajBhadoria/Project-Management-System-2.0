@@ -9,21 +9,26 @@ def createOrganization(org: Organization,user_ID):
     with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                                    """
-                                    INSERT INTO organizations(name,slug,created_by)
-                                    VALUES (%s,%s,%s)
-                                    RETURNING name, created_by
-                                    """,
-                                    (org.name,slug,user_ID)
-                                )
-            row:tuple = cursor.fetchone()
-                                
-            if row is None:
-                return None
+                """
+                INSERT INTO organizations (name, slug, created_by)
+                VALUES (%s, %s, %s)
+                RETURNING id
+                """,
+                (org.name, slug, user_ID)
+            )
 
-            return Organization(
-                    name = row[0]
-                    )
+            org_id = cursor.fetchone()[0]
+
+            cursor.execute(
+                """
+                INSERT INTO organization_members
+                (organization_id, user_id, role)
+                VALUES (%s, %s, %s)
+                """,
+                (org_id, user_ID, "owner")
+            )
+
+            return org_id
             
 def getUserOrganization(user_ID):
     with pool.connection() as conn:
