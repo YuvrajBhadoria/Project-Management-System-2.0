@@ -62,3 +62,68 @@ def getOrganizationMembers(org_id,current_user_id):
 
 def getOrganizationMember(org_id, user_id):
     return data.getOrganizationMember(org_id,user_id)
+
+from fastapi import HTTPException
+
+def removeOrganizationMember(slug, user_id, current_user_id):
+
+    org = data.getOrganization(slug)
+
+    if org is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Organization not found"
+        )
+
+    current_member = data.getOrganizationMember(
+        org["id"],
+        current_user_id
+    )
+
+    if current_member is None:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not a member of this organization"
+        )
+
+    if current_member["role"] not in ["owner", "admin"]:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to remove members"
+        )
+
+    target_member = data.getOrganizationMember(
+        org["id"],
+        user_id
+    )
+
+    if target_member is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User is not a member of this organization"
+        )
+
+    if target_member["role"] == "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Organization owner cannot be removed"
+        )
+
+    if current_member["role"] == "admin" and target_member["role"] == "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admins cannot remove other admins"
+        )
+
+    result = data.removeOrganizationMember(
+        org["id"],
+        user_id
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Membership not found"
+        )
+
+    return {"message": "Member removed successfully"}

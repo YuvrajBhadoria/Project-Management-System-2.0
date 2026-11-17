@@ -68,3 +68,15 @@ def addOrganizationMember(
 @router.get("/organizations/{slug}/members")
 def getOrganizationMembers(org_id,current_user=Depends(get_current_user)):
     return service.getOrganizationMembers(org_id,current_user[0])
+
+@router.delete("/{slug}/members/{user_id}")
+def removeOrganizationMember(
+    slug: str,
+    user_id,
+    current_user=Depends(get_current_user)
+):
+    return service.removeOrganizationMember(
+        slug,
+        user_id,
+        current_user["id"]
+    )

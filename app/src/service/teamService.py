@@ -3,6 +3,7 @@ from src.models.Teams import Teams
 from src.service import organizationService
 from fastapi import HTTPException
 from src.data import organizationData
+from src.data import teamData as data
 
 def createTeam(team: Teams,slug:str ,user_ID):
     
@@ -13,9 +14,25 @@ def createTeam(team: Teams,slug:str ,user_ID):
         return {"message": "You are not eligible to create a new Team"}
     return data.createTeam(team,user_ID)
 
-def getTeams(slug: str):
-    org = organizationService.getOrganization()
-    return data.getTeams(org[0])
+def getTeam(team_id, current_user_id):
+
+    team = data.getTeamDetail(team_id)
+
+    if team is None:
+        raise HTTPException(404, "Team not found")
+
+    membership = organizationData.getOrganizationMember(
+        team["organization_id"],
+        current_user_id
+    )
+
+    if membership is None:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't belong to this organization"
+        )
+
+    return team
 
 def getTeamDetail(team_id):
     return data.getTeamDetail(team_id)
@@ -43,10 +60,6 @@ def updateTeam(team_id, update_data, current_user_id):
 
     return data.updateTeam(team_id, update_data)
 
-from fastapi import HTTPException
-from src.data import teamData as data
-from src.data import organizationData
-
 def deleteTeam(team_id, current_user_id):
 
     team = data.getTeamById(team_id)
@@ -69,3 +82,11 @@ def deleteTeam(team_id, current_user_id):
         )
 
     return data.deleteTeam(team_id)
+
+def addTeamMember(team_id,user_Id):
+    org = organizationService.getUserOrganization(user_Id)
+    if org is None:
+        raise  HTTPException(status_code=404,
+                             detail="This User is not in this organization")
+    
+    return data.addTeamMember(team_id,user_Id)

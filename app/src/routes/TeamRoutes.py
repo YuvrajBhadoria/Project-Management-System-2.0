@@ -55,7 +55,7 @@ def updateTeam(
         current_user["id"]
     )
     
-@router.delete("/{team_id}")
+@router.delete("/teams/{team_id}")
 def deleteTeam(
     team_id,
     current_user=Depends(get_current_user)
@@ -64,3 +64,8 @@ def deleteTeam(
         team_id,
         current_user["id"]
     )
+    
+@router.post("/teams/{team_id}/members")
+def addTeamMember(team_id,user = Depends(get_current_user)):
+    result = service.addTeamMember(team_id,user[0])
+    return result

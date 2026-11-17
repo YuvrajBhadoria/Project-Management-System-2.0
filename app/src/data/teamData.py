@@ -91,3 +91,19 @@ def deleteTeam(team_id):
             )
 
             return cursor.fetchone()
+        
+def addTeamMember(team_id,user_id):
+    with pool.connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO teams_members(team_id,user_id)
+                    values
+                    (%s,%s)
+                    RETURNING *
+                    """,
+                    (team_id,user_id)
+                )
+    
+            return cursor.fetchone()
+        

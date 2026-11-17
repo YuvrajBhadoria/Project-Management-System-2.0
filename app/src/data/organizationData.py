@@ -163,3 +163,30 @@ def getOrganizationMembers(org_id):
 
                 
             return result
+        
+def removeOrganizationMember(org_id, user_id):
+    with pool.connection() as conn:
+        with conn.cursor() as cursor:
+            
+            cursor.execute(
+                """
+                DELETE FROM team_members tm
+                USING teams t
+                WHERE tm.team_id = t.id
+                AND t.organization_id = %s
+                AND tm.user_id = %s
+                """,
+                (org_id, user_id)
+            )
+
+            cursor.execute(
+                """
+                DELETE FROM organization_members
+                WHERE organization_id = %s
+                AND user_id = %s
+                RETURNING *
+                """,
+                (org_id, user_id)
+            )
+
+            return cursor.fetchone()
